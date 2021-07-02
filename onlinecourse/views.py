@@ -102,7 +102,7 @@ def enroll(request, course_id):
 
     return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))
 
-def extract_answers(request):
+def extract_answers_request(request):
     submitted_anwsers = []
     for key in request.POST:
         if key.startswith('choice'):
@@ -111,23 +111,36 @@ def extract_answers(request):
             submitted_anwsers.append(choice_id)
     return submitted_anwsers
 
+def extract_answers_submisison(submission):
+    submitted_anwsers = []
+    for choice in submission.choices.all():
+            choice_id = choice.id
+            submitted_anwsers.append(choice_id)
+    return submitted_anwsers
+
+
+
+
 def submit(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     user = request.user
-    print(request)
-    print(request.headers)
-    print(request.POST.items())
-    for x in request.POST.items():
-        print(x)
+    #print(request)
+    #print(request.headers)
+    #print(request.POST.items())
+    #for x in request.POST.items():
+        #print(x)
     if user.is_authenticated:
         enrollment = Enrollment.objects.get(user=user, course=course)
         my_submission = Submission.objects.create(enrollment=enrollment)
-        submitted_anwsers=extract_answers(request)
+        submitted_anwsers=extract_answers_request(request)
         for submitted_anwser in submitted_anwsers:
-            print(submitted_anwser)
+            #print(submitted_anwser)
             my_submission.choices.add(Choice.objects.get(id=submitted_anwser))
-
-    return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))
+    #selected_choices_id_list=extract_answers_submisison(my_submission)
+    #print(selected_choices_id_list)
+    args = {"course_id":course.id, "submission_id":my_submission.id}
+    
+    return show_exam_result(request, course_id, my_submission.id) # do better
 
 # <HINT> Create a submit view to create an exam submission record for a course enrollment,
 # you may implement it based on following logic:
@@ -150,6 +163,24 @@ def submit(request, course_id):
 #    return submitted_anwsers
 
 
+def show_exam_result(request, course_id, submission_id):
+#"""def show_exam_result(request, course_id, submission_id):"""
+    submission = get_object_or_404(Submission, pk=submission_id)# Get course and submission based on their ids
+    course = get_object_or_404(Course, pk=course_id)
+     # Get the selected choice ids from the submission record
+    selected_choices_id_list=extract_answers_submisison(submission)
+    questions=Question.objects.filter(course=course.id)
+    score=0.0
+    for question in questions:
+        if question.is_get_score(selected_choices_id_list):
+            score = score + question.grade
+            print(question.text)
+            print(question.grade)
+        else:
+            print(question.text)
+            print("ERROR")
+    return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))    
+       
 # <HINT> Create an exam result view to check if learner passed exam and show their question results and result for each question,
 # you may implement it based on the following logic:
         # Get course and submission based on their ids

@@ -110,9 +110,13 @@ class Question(models.Model):
     course= models.ForeignKey(Course, on_delete=models.CASCADE)# Has a One-To-Many (or Many-To-Many if you want to reuse questions) relationship with course
     #lesson = models.ManyToManyField(Lesson, on_delete=models.CASCADE, through='Course') # Foreign key to lesson # ???
     def is_get_score(self, selected_ids):
+        #print(selected_ids)
+        #for selected in self.choice_set.filter(is_correct=True):
+            #print(selected)
         all_answers = self.choice_set.filter(is_correct=True).count()
         selected_correct = self.choice_set.filter(is_correct=True, id__in=selected_ids).count()
-        if all_answers == selected_correct:
+        selected_not_correct =self.choice_set.filter(is_correct=False, id__in=selected_ids).count()
+        if all_answers == selected_correct and selected_not_correct == 0:
             return True
         else:
             return False      
