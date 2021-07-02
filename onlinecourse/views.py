@@ -170,10 +170,16 @@ def show_exam_result(request, course_id, submission_id):
      # Get the selected choice ids from the submission record
     selected_choices_id_list=extract_answers_submisison(submission)
     questions=Question.objects.filter(course=course.id)
-    score=0.0
+    context = {}
+    context["totalScore"]=0.0
+    context['score']=0.0
     for question in questions:
+        context[str(question.id)]={}
+        print(question.classification(selected_choices_id_list))
+        context["totalScore"]=context["totalScore"]+question.grade
+        context["totalScore"]=context["totalScore"]+question.grade
         if question.is_get_score(selected_choices_id_list):
-            score = score + question.grade
+            context['score'] = context['score'] + question.grade
             print(question.text)
             print(question.grade)
         else:

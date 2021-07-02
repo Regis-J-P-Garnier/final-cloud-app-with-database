@@ -109,6 +109,38 @@ class Question(models.Model):
     grade=models.FloatField(default=1.0)# Has a grade point for each question
     course= models.ForeignKey(Course, on_delete=models.CASCADE)# Has a One-To-Many (or Many-To-Many if you want to reuse questions) relationship with course
     #lesson = models.ManyToManyField(Lesson, on_delete=models.CASCADE, through='Course') # Foreign key to lesson # ???
+    def choices_correct_ids(self):
+        selected_list=[]
+        for correct in self.choice_set.filter(is_correct=True):
+            selected_list.append(correct.id)
+        return selected_list
+    
+    def choices_not_correct_ids(self):
+        selected_list=[]
+        for correct in self.choice_set.filter(is_correct=False):
+            selected_list.append(correct.id)
+        return selected_list
+    
+    def choices_ids(self):
+        selected_list=[]
+        for correct in self.choice_set.all():
+            selected_list.append(correct.id)
+        return selected_list
+        
+    def classification(self, selected_ids):
+        classification = {"selected_but_false":[],
+                          "selected_and_true":[],
+                          "not_selected_and_false":[],
+                          "not_selected_but_true":[]}     
+        selected_ids =   [id for id in selected_ids if id in   self.choices_ids()] # restrict to this question              
+        not_selected_id = [id for id in self.choices_ids() if id not in set(selected_ids)]
+        
+        classification["selected_but_false"] = [id for id in selected_ids if id  in set(self.choices_not_correct_ids())]
+        classification["selected_and_true"] = [id for id in selected_ids if id  in set(self.choices_correct_ids())]
+        classification["not_selected_and_false"] = [id for id in not_selected_id if id  in set(self.choices_not_correct_ids())]
+        classification["not_selected_but_true"] = [id for id in not_selected_id if id  in set(self.choices_correct_ids())]
+        return classification
+    
     def is_get_score(self, selected_ids):
         #print(selected_ids)
         #for selected in self.choice_set.filter(is_correct=True):
