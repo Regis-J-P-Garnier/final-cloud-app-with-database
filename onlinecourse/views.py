@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.contrib.auth import login, logout, authenticate
+import math
 import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -124,6 +125,7 @@ def extract_answers_submisison(submission):
 def submit(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     user = request.user
+    
     #print(request)
     #print(request.headers)
     #print(request.POST.items())
@@ -138,8 +140,7 @@ def submit(request, course_id):
             my_submission.choices.add(Choice.objects.get(id=submitted_anwser))
     #selected_choices_id_list=extract_answers_submisison(my_submission)
     #print(selected_choices_id_list)
-    args = {"course_id":course.id, "submission_id":my_submission.id}
-    
+    context = {"course_id":course_id,"submission.id":my_submission.id}
     return show_exam_result(request, course_id, my_submission.id) # do better
 
 # <HINT> Create a submit view to create an exam submission record for a course enrollment,
@@ -171,20 +172,35 @@ def show_exam_result(request, course_id, submission_id):
     selected_choices_id_list=extract_answers_submisison(submission)
     questions=Question.objects.filter(course=course.id)
     context = {}
-    context["totalScore"]=0.0
+    context["submission_id"]=submission_id
+    context["course_name"]=course.name
+    context["total_score"]
+    context["total_score"]=0.0
     context['score']=0.0
+    context["questions"]=[]
     for question in questions:
-        context[str(question.id)]={}
-        print(question.classification(selected_choices_id_list))
-        context["totalScore"]=context["totalScore"]+question.grade
-        context["totalScore"]=context["totalScore"]+question.grade
-        if question.is_get_score(selected_choices_id_list):
-            context['score'] = context['score'] + question.grade
-            print(question.text)
-            print(question.grade)
-        else:
-            print(question.text)
-            print("ERROR")
+        question_dict={}
+        classification=question.classification(selected_choices_id_list)
+        #question_dict["classification"]=question.classification(selected_choices_id_list)
+        question_dict["text"]=question.text
+        context["total_score"]=context["total_score"]+question.grade
+        context['score']=context['score']+question.grade/len(question.choices_correct_ids())*max(0,
+            len(classification["selected_and_true"])-
+            2*len(classification["selected_but_false"]))
+        question_dict["choices"]=[]
+        for choice_id in classification["selected_and_true"]:
+            question_dict["choices"].append({"status":"selected_and_true","text":Choice.objects.get(id=choice_id).text})
+        for choice_id in classification["selected_but_false"]:
+            question_dict["choices"].append({"status":"selected_but_false","text":Choice.objects.get(id=choice_id).text}) 
+        for choice_id in classification["not_selected_but_true"]:
+            question_dict["choices"].append({"status":"not_selected","text":Choice.objects.get(id=choice_id).text})
+        for choice_id in classification["not_selected_and_false"]:
+            question_dict["choices"].append({"status":"not_selected","text":Choice.objects.get(id=choice_id).text})
+        if len(classification["not_selected_but_true"])>0:
+            question_dict["choices"].append({"status":"missing"})
+        context["questions"].append(question_dict)
+    print(str(context['score'])+"/"+str(context["total_score"]))
+    print(context)
     return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))    
        
 # <HINT> Create an exam result view to check if learner passed exam and show their question results and result for each question,
