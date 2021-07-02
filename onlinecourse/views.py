@@ -172,9 +172,8 @@ def show_exam_result(request, course_id, submission_id):
     selected_choices_id_list=extract_answers_submisison(submission)
     questions=Question.objects.filter(course=course.id)
     context = {}
-    context["submission_id"]=submission_id
-    context["course_name"]=course.name
-    context["total_score"]
+    context["submission"]=submission
+    context["course"]=course
     context["total_score"]=0.0
     context['score']=0.0
     context["questions"]=[]
@@ -199,9 +198,11 @@ def show_exam_result(request, course_id, submission_id):
         if len(classification["not_selected_but_true"])>0:
             question_dict["choices"].append({"status":"missing"})
         context["questions"].append(question_dict)
+    context["total_per_cent"]=context['score']/context["total_score"]
     print(str(context['score'])+"/"+str(context["total_score"]))
     print(context)
-    return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))    
+    return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
+    #return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))    
        
 # <HINT> Create an exam result view to check if learner passed exam and show their question results and result for each question,
 # you may implement it based on the following logic:
