@@ -192,9 +192,9 @@ def show_exam_result(request, course_id, submission_id):
         for choice_id in classification["selected_but_false"]:
             question_dict["choices"].append({"status":"selected_but_false","text":Choice.objects.get(id=choice_id).text}) 
         for choice_id in classification["not_selected_but_true"]:
-            question_dict["choices"].append({"status":"not_selected","text":Choice.objects.get(id=choice_id).text})
+            question_dict["choices"].append({"status":"not_selected_but_true","text":Choice.objects.get(id=choice_id).text})
         for choice_id in classification["not_selected_and_false"]:
-            question_dict["choices"].append({"status":"not_selected","text":Choice.objects.get(id=choice_id).text})
+            question_dict["choices"].append({"status":"not_selected_and_false","text":Choice.objects.get(id=choice_id).text})
         if len(classification["not_selected_but_true"])>0:
             question_dict["choices"].append({"status":"missing"})
         context["questions"].append(question_dict)
