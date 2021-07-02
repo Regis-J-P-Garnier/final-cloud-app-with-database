@@ -56,6 +56,25 @@
     	<h5><a class="btn btn-link text-danger" href="{% url 'onlinecourse:course_details' course.id %}"><b>Re-test</b></a> </h5>
     </div>
     {% endif %}
+    <h5>  Exam Results </h5>
+    {% for question in questions %}
+    	<h6>{{question.text}}</h6>
+    	{% for choice in question.choices %}
+    		{{choice.status}}
+	    	{% if choice.status == "selected_and_true" %}
+	    		<p class="alert alert-success">
+	    	{% elif choice.status == "selected_but_false" %}
+	    		<p class="alert alert-success">
+			{% else %}
+	    		<p>
+	    	{% endif %}
+	    		{{choice.text}}</p>
+	    	{% if choice.status == "missing" %}
+	    	<h6>some good response(s), is(are) not selected</h6>
+	    	{% endif %}
+    	{% endfor %}
+    
+    {% endfor %}
             <!--HINT Display exam results-->
     </div>
     </div>
