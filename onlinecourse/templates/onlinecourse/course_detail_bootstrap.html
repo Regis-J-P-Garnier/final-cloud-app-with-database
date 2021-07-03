@@ -40,19 +40,22 @@
     </nav>
 
     <!-- Page content -->
-    <div class="container-fluid">
-            <h2>{{ course.name }}</h2>
+    <div class="container-fluid"> <h2>{{ course.name }}</h2>
+     <a href="#courses" data-toggle="collapse"><b>LESSONS</b> click to collapse</a> 
+     <div id="courses" class="collapse">
+   	 <div class="cont<h2>{{ course.name }}</h2>
             <div class="card-columns-vertical">
                 {% for lesson in course.lesson_set.all %}
                     <div class="card mt-1">
-                        <div class="card-header"><h5>Lesson {{lesson.order|add:1}}: {{lesson.title}}</h5></div>
-                        <div class="card-body">{{lesson.content}}</div>
+                        <div class="card-header"><a href="#course{{forloop.counter}}" data-toggle="collapse"><h5>Lesson of {{lesson.title}}</h5></a></div>
+                        <div class="card-body collapse" id="course{{forloop.counter}}" style="padding:2px; padding-left:25px;">{{lesson.content}}</div>
                     </div>
                 {% endfor %}
             </div>
-      </div>
+     </div>
+   	 </div></div>
      <div class="container-fluid">     
-           <a href="#exam" data-toggle="collapse"><h2>EXAM</h2> click to collapse</a> 
+           <a href="#exam" data-toggle="collapse"><b>EXAMS</b> click to collapse</a> 
             <div div id="exam" class="collapse">
            	{% if user.is_authenticated %}
            	<form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
